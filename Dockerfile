@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
+    libpq-dev \
+    gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
@@ -16,11 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8000
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "horilla.wsgi:application"]
+CMD ["sh", "./entrypoint.sh"]
