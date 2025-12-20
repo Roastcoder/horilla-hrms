@@ -7,13 +7,18 @@ services:
       - "8001:8000"
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
       DEBUG: ${DEBUG:-False}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
       SECRET_KEY: ${SECRET_KEY}
       TIME_ZONE: ${TIME_ZONE}
       DB_INIT_PASSWORD: ${DB_INIT_PASSWORD}
+      DB_ENGINE: ${DB_ENGINE}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
     command: sh ./entrypoint.sh
     volumes:
       - ./media:/app/media
