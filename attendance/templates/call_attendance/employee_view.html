@@ -1,0 +1,161 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="oh-wrapper">
+    <div class="oh-dashboard__left col-12 col-sm-12 col-md-12 col-lg-12 pb-5">
+        <div class="oh-dashboard row">
+            <div class="col-12">
+                <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                    <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                        <span class="oh-card-dashboard__title">{% trans "My Call Attendance" %}</span>
+                        <p class="oh-text-muted">{{ employee.get_full_name }}</p>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <!-- Date Filter -->
+                        <form method="get" class="oh-form oh-form--inline mb-3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">{% trans "From Date" %}</label>
+                                        <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="oh-input">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">{% trans "To Date" %}</label>
+                                        <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="oh-input">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">&nbsp;</label>
+                                        <button type="submit" class="oh-btn oh-btn--primary">{% trans "Filter" %}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="col-12">
+                <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                    <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                        <span class="oh-card-dashboard__title">{% trans "Summary" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--success oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ summary.present_days }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Present Days" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--warning oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ summary.half_days }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Half Days" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--danger oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ summary.absent_days }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Absent Days" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--neutral oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ summary.total_call_minutes }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Total Minutes" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Records -->
+            <div class="col-12">
+                <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                    <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                        <span class="oh-card-dashboard__title">{% trans "Attendance Records" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="oh-table-container">
+                            <table class="oh-table">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Call Minutes" %}</th>
+                                        <th>{% trans "Calls" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Source" %}</th>
+                                        <th>{% trans "Reason" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attendance in attendances %}
+                                    <tr>
+                                        <td>{{ attendance.attendance_date }}</td>
+                                        <td>{{ attendance.call_duration_minutes }}</td>
+                                        <td>{{ attendance.call_count }}</td>
+                                        <td>
+                                            {% if attendance.attendance_status == 'PRESENT' %}
+                                                <span class="oh-badge oh-badge--success">{% trans "Present" %}</span>
+                                            {% elif attendance.attendance_status == 'HALF_DAY' %}
+                                                <span class="oh-badge oh-badge--warning">{% trans "Half Day" %}</span>
+                                            {% else %}
+                                                <span class="oh-badge oh-badge--danger">{% trans "Absent" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if attendance.source == 'AUTO' %}
+                                                <span class="oh-badge oh-badge--info">{% trans "Auto" %}</span>
+                                            {% else %}
+                                                <span class="oh-badge oh-badge--secondary">{% trans "Manual" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if attendance.manual_reason %}
+                                                <small>{{ attendance.manual_reason|truncatechars:50 }}</small>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="oh-table__empty">
+                                            {% trans "No attendance records found for the selected period" %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,238 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="oh-wrapper">
+    <div class="oh-dashboard__left col-12 col-sm-12 col-md-12 col-lg-12 pb-5">
+        <div class="oh-dashboard row">
+            <div class="oh-dashboard__cards row">
+                <div class="col-12 col-sm-12 col-md-6 col-lg-3">
+                    <div class="oh-card-dashboard oh-card-dashboard--neutral">
+                        <div class="oh-card-dashboard__header">
+                            <span class="oh-card-dashboard__title">{% trans "Total Employees" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            <div class="oh-card-dashboard__counts">
+                                <span class="oh-card-dashboard__count">{{ stats.total_employees }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-6 col-lg-3">
+                    <div class="oh-card-dashboard oh-card-dashboard--success">
+                        <div class="oh-card-dashboard__header">
+                            <span class="oh-card-dashboard__title">{% trans "Present Today" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            <div class="oh-card-dashboard__counts">
+                                <span class="oh-card-dashboard__count">{{ stats.today_present }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-6 col-lg-3">
+                    <div class="oh-card-dashboard oh-card-dashboard--warning">
+                        <div class="oh-card-dashboard__header">
+                            <span class="oh-card-dashboard__title">{% trans "Half Day Today" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            <div class="oh-card-dashboard__counts">
+                                <span class="oh-card-dashboard__count">{{ stats.today_half_day }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-6 col-lg-3">
+                    <div class="oh-card-dashboard oh-card-dashboard--danger">
+                        <div class="oh-card-dashboard__header">
+                            <span class="oh-card-dashboard__title">{% trans "Absent Today" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            <div class="oh-card-dashboard__counts">
+                                <span class="oh-card-dashboard__count">{{ stats.today_absent }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="oh-dashboard row pt-3">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                        <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                            <span class="oh-card-dashboard__title">{% trans "Configuration Status" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            {% if active_config %}
+                                <div class="oh-alert oh-alert--success mb-3">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {% trans "Active Configuration" %}: 
+                                    {{ active_config.full_day_minutes }}min ({% trans "Full Day" %}) / 
+                                    {{ active_config.half_day_minutes }}min ({% trans "Half Day" %}) / 
+                                    {{ active_config.absent_threshold_minutes }}min ({% trans "Absent" %})
+                                </div>
+                                <a href="{% url 'call_attendance:attendance_config' %}" class="oh-btn oh-btn--secondary oh-btn--small">
+                                    {% trans "Edit Configuration" %}
+                                </a>
+                            {% else %}
+                                <div class="oh-alert oh-alert--danger mb-3">
+                                    <ion-icon name="warning-outline"></ion-icon>
+                                    {% trans "No active configuration found. Please set up attendance thresholds." %}
+                                </div>
+                                <a href="{% url 'call_attendance:attendance_config' %}" class="oh-btn oh-btn--primary">
+                                    {% trans "Setup Configuration" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                        <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                            <span class="oh-card-dashboard__title">{% trans "Quick Actions" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body">
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <a href="{% url 'call_attendance:call_log_create' %}" class="oh-btn oh-btn--success oh-btn--small w-100">
+                                        <ion-icon name="add-outline"></ion-icon> {% trans "Add Call Log" %}
+                                    </a>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <a href="{% url 'call_attendance:manual_update_attendance' %}" class="oh-btn oh-btn--warning oh-btn--small w-100">
+                                        <ion-icon name="create-outline"></ion-icon> {% trans "Manual Update" %}
+                                    </a>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <button id="calculate-attendance" class="oh-btn oh-btn--info oh-btn--small w-100">
+                                        <ion-icon name="calculator-outline"></ion-icon> {% trans "Calculate Today" %}
+                                    </button>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <a href="{% url 'attendance-view' %}" class="oh-btn oh-btn--secondary oh-btn--small w-100">
+                                        <ion-icon name="bar-chart-outline"></ion-icon> {% trans "View Report" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="oh-dashboard row pt-3">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-8">
+                    <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                        <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                            <span class="oh-card-dashboard__title">{% trans "Recent Attendance Records" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body" style="height:400px; overflow-y: auto;">
+                            <div class="oh-table-container">
+                                <table class="oh-table oh-table--sm">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Employee" %}</th>
+                                            <th>{% trans "Date" %}</th>
+                                            <th>{% trans "Call Minutes" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Source" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for attendance in recent_attendances %}
+                                        <tr>
+                                            <td>{{ attendance.employee_id.get_full_name }}</td>
+                                            <td>{{ attendance.attendance_date }}</td>
+                                            <td>{{ attendance.call_duration_minutes }}</td>
+                                            <td>
+                                                {% if attendance.attendance_status == 'PRESENT' %}
+                                                    <span class="oh-badge oh-badge--success">{{ attendance.get_attendance_status_display }}</span>
+                                                {% elif attendance.attendance_status == 'HALF_DAY' %}
+                                                    <span class="oh-badge oh-badge--warning">{{ attendance.get_attendance_status_display }}</span>
+                                                {% else %}
+                                                    <span class="oh-badge oh-badge--danger">{{ attendance.get_attendance_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if attendance.source == 'AUTO' %}
+                                                    <span class="oh-badge oh-badge--info">{{ attendance.get_source_display }}</span>
+                                                {% else %}
+                                                    <span class="oh-badge oh-badge--secondary">{{ attendance.get_source_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="oh-table__empty">{% trans "No recent attendance records" %}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-right mt-3">
+                                <a href="{% url 'attendance-view' %}" class="oh-btn oh-btn--secondary oh-btn--small">
+                                    {% trans "View All" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-12 col-md-12 col-lg-4">
+                    <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                        <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                            <span class="oh-card-dashboard__title">{% trans "Recent Audit Logs" %}</span>
+                        </div>
+                        <div class="oh-card-dashboard__body" style="height:400px; overflow-y: auto;">
+                            {% for audit in recent_audits %}
+                            <div class="oh-card oh-card--sm mb-2">
+                                <div class="oh-card__body">
+                                    <small class="oh-text-muted">{{ audit.timestamp|date:"M d, H:i" }}</small><br>
+                                    <strong>{{ audit.employee_id.get_full_name }}</strong><br>
+                                    <small>{% trans "Updated by" %}: {{ audit.updated_by.get_full_name }}</small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="oh-text-muted">{% trans "No recent audit logs" %}</p>
+                            {% endfor %}
+                            <div class="text-right mt-3">
+                                <a href="{% url 'call_attendance:audit_trail' %}" class="oh-btn oh-btn--secondary oh-btn--small">
+                                    {% trans "View All" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('calculate-attendance').addEventListener('click', function() {
+    if (confirm('{% trans "Calculate attendance for today?" %}')) {
+        fetch('{% url "call_attendance:calculate_attendance" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'date=' + new Date().toISOString().split('T')[0]
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+});
+</script>
+{% endblock content %}

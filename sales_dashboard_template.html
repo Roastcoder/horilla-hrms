@@ -1,0 +1,200 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Sales Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="oh-wrapper">
+    <div class="oh-main__body">
+        <!-- Header -->
+        <div class="oh-titlebar">
+            <div class="oh-titlebar__container">
+                <h1 class="oh-titlebar__title">{% trans "Sales Dashboard" %}</h1>
+                <div class="oh-titlebar__actions">
+                    <a href="{% url 'sales_incentive:lead_create' %}" class="oh-btn oh-btn--primary">
+                        <ion-icon name="add-outline"></ion-icon>
+                        {% trans "Add Lead" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="oh-dashboard__cards row mb-4">
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="oh-card-dashboard oh-card-dashboard--info">
+                    <div class="oh-card-dashboard__header">
+                        <span class="oh-card-dashboard__title">{% trans "Total Leads" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="oh-card-dashboard__counts">
+                            <span class="oh-card-dashboard__count">{{ stats.total_leads }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="oh-card-dashboard oh-card-dashboard--success">
+                    <div class="oh-card-dashboard__header">
+                        <span class="oh-card-dashboard__title">{% trans "Disbursed" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="oh-card-dashboard__counts">
+                            <span class="oh-card-dashboard__count">{{ stats.disbursed_leads }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="oh-card-dashboard oh-card-dashboard--warning">
+                    <div class="oh-card-dashboard__header">
+                        <span class="oh-card-dashboard__title">{% trans "Total Amount" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="oh-card-dashboard__counts">
+                            <span class="oh-card-dashboard__count">₹{{ stats.total_amount|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-sm-6 col-md-3">
+                <div class="oh-card-dashboard oh-card-dashboard--neutral">
+                    <div class="oh-card-dashboard__header">
+                        <span class="oh-card-dashboard__title">{% trans "Total Points" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="oh-card-dashboard__counts">
+                            <span class="oh-card-dashboard__count">{{ stats.total_points|floatformat:1 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Top Performers -->
+            <div class="col-12 col-lg-6">
+                <div class="oh-card">
+                    <div class="oh-card__header">
+                        <h3 class="oh-card__title">{% trans "Top Performers" %}</h3>
+                    </div>
+                    <div class="oh-card__body">
+                        {% if top_performers %}
+                            <div class="oh-table-wrapper">
+                                <table class="oh-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Employee" %}</th>
+                                            <th>{% trans "Incentive" %}</th>
+                                            <th>{% trans "Points" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for performer in top_performers %}
+                                        <tr>
+                                            <td>{{ performer.employee }}</td>
+                                            <td>₹{{ performer.final_incentive|floatformat:0 }}</td>
+                                            <td>{{ performer.total_points|floatformat:1 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="oh-empty-state">
+                                <p>{% trans "No performance data available" %}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Leads -->
+            <div class="col-12 col-lg-6">
+                <div class="oh-card">
+                    <div class="oh-card__header">
+                        <h3 class="oh-card__title">{% trans "Recent Leads" %}</h3>
+                        <a href="{% url 'sales_incentive:lead_list' %}" class="oh-btn oh-btn--sm oh-btn--secondary">
+                            {% trans "View All" %}
+                        </a>
+                    </div>
+                    <div class="oh-card__body">
+                        {% if recent_leads %}
+                            <div class="oh-table-wrapper">
+                                <table class="oh-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Employee" %}</th>
+                                            <th>{% trans "Loan Type" %}</th>
+                                            <th>{% trans "Amount" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for lead in recent_leads %}
+                                        <tr>
+                                            <td>{{ lead.employee }}</td>
+                                            <td>{{ lead.loan_type }}</td>
+                                            <td>₹{{ lead.loan_amount_lac|floatformat:1 }}L</td>
+                                            <td>
+                                                <span class="oh-badge 
+                                                    {% if lead.status == 'DISBURSED' %}oh-badge--success
+                                                    {% elif lead.status == 'APPROVED' %}oh-badge--info
+                                                    {% elif lead.status == 'REJECTED' %}oh-badge--danger
+                                                    {% else %}oh-badge--warning{% endif %}">
+                                                    {{ lead.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="oh-empty-state">
+                                <p>{% trans "No recent leads" %}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="oh-card">
+                    <div class="oh-card__header">
+                        <h3 class="oh-card__title">{% trans "Quick Actions" %}</h3>
+                    </div>
+                    <div class="oh-card__body">
+                        <div class="oh-btn-group">
+                            <a href="{% url 'sales_incentive:bulk_calculation' %}" class="oh-btn oh-btn--primary">
+                                <ion-icon name="calculator-outline"></ion-icon>
+                                {% trans "Calculate Incentives" %}
+                            </a>
+                            <a href="{% url 'sales_incentive:target_create' %}" class="oh-btn oh-btn--secondary">
+                                <ion-icon name="target-outline"></ion-icon>
+                                {% trans "Set Targets" %}
+                            </a>
+                            <a href="{% url 'sales_incentive:reports' %}" class="oh-btn oh-btn--info">
+                                <ion-icon name="analytics-outline"></ion-icon>
+                                {% trans "Generate Reports" %}
+                            </a>
+                            <a href="{% url 'sales_incentive:slab_list' %}" class="oh-btn oh-btn--warning">
+                                <ion-icon name="settings-outline"></ion-icon>
+                                {% trans "Manage Slabs" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

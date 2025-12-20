@@ -1,0 +1,30 @@
+{% load i18n %}
+<div class="oh-modal__dialog-body">
+    <form method="post" action="{% url 'white-label-config' %}">
+        {% csrf_token %}
+        <div class="oh-input-group">
+            <label class="oh-input__label">{% trans "White Labeling" %}</label>
+            <div class="oh-switch">
+                <input 
+                    type="checkbox" 
+                    name="enable_white_label" 
+                    id="enable_white_label"
+                    class="oh-switch__checkbox"
+                    {% if white_label_enabled %}checked{% endif %}
+                />
+                <label for="enable_white_label" class="oh-switch__label">
+                    {% trans "Enable White Labeling" %}
+                </label>
+            </div>
+            <small class="oh-input__help-text">
+                {% trans "When enabled, the system will use company branding instead of Horilla branding" %}
+            </small>
+        </div>
+        
+        <div class="oh-modal__dialog-footer">
+            <button type="submit" class="oh-btn oh-btn--primary">
+                {% trans "Save Changes" %}
+            </button>
+        </div>
+    </form>
+</div>

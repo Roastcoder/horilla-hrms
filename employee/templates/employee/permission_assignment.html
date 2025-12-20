@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Employee Permission Assignment" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">{% trans "Employee Permission Assignment" %}</h4>
+                    <p class="card-text">{% trans "Assign permissions to employees quickly and efficiently" %}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Employee Selection -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="employee-select" class="form-label">{% trans "Select Employee" %}</label>
+                            <select id="employee-select" class="form-select oh-select oh-select-2">
+                                <option value="">{% trans "Choose Employee..." %}</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}" 
+                                        data-name="{{ employee.employee_first_name }} {{ employee.employee_last_name }}"
+                                        data-email="{{ employee.email|default:'N/A' }}"
+                                        data-badge="{{ employee.badge_id|default:'N/A' }}">
+                                    {{ employee.employee_first_name }} {{ employee.employee_last_name }} 
+                                    ({{ employee.badge_id|default:'No Badge' }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{% trans "Employee Info" %}</label>
+                            <div id="employee-info" class="p-3 bg-light rounded" style="display: none;">
+                                <strong id="employee-name"></strong><br>
+                                <small class="text-muted">
+                                    {% trans "Email" %}: <span id="employee-email"></span><br>
+                                    {% trans "Badge ID" %}: <span id="employee-badge"></span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Permissions Display -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div id="current-permissions" style="display: none;">
+                                <h5>{% trans "Current Permissions" %}</h5>
+                                <div id="permissions-list" class="border p-3 rounded bg-light">
+                                    <!-- Permissions will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Assignment Form -->
+                    <div class="row">
+                        <div class="col-12">
+                            <form id="permission-form" style="display: none;">
+                                {% csrf_token %}
+                                <input type="hidden" id="selected-employee" name="employee_id">
+                                
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label class="form-label">{% trans "Available Permissions" %}</label>
+                                        <div class="permission-groups">
+                                            {% for app_name, app_permissions in permissions_by_app.items %}
+                                            <div class="card mb-3">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">
+                                                        <button class="btn btn-link text-decoration-none" type="button" 
+                                                                data-bs-toggle="collapse" 
+                                                                data-bs-target="#collapse-{{ app_name }}" 
+                                                                aria-expanded="false">
+                                                            {{ app_name|title }}
+                                                            <span class="badge bg-secondary ms-2">{{ app_permissions|length }}</span>
+                                                        </button>
+                                                    </h6>
+                                                </div>
+                                                <div id="collapse-{{ app_name }}" class="collapse">
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            {% for permission in app_permissions %}
+                                                            <div class="col-md-6 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input permission-checkbox" 
+                                                                           type="checkbox" 
+                                                                           value="{{ permission.codename }}" 
+                                                                           id="perm-{{ permission.id }}">
+                                                                    <label class="form-check-label" for="perm-{{ permission.id }}">
+                                                                        <strong>{{ permission.codename }}</strong><br>
+                                                                        <small class="text-muted">{{ permission.name }}</small>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="sticky-top">
+                                            <label class="form-label">{% trans "Assignment Options" %}</label>
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="form-check mb-3">
+                                                        <input class="form-check-input" type="radio" name="assignment_mode" 
+                                                               id="mode-add" value="add" checked>
+                                                        <label class="form-check-label" for="mode-add">
+                                                            {% trans "Add to existing permissions" %}
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-3">
+                                                        <input class="form-check-input" type="radio" name="assignment_mode" 
+                                                               id="mode-replace" value="replace">
+                                                        <label class="form-check-label" for="mode-replace">
+                                                            {% trans "Replace all permissions" %}
+                                                        </label>
+                                                    </div>
+                                                    
+                                                    <hr>
+                                                    
+                                                    <div class="d-grid gap-2">
+                                                        <button type="submit" class="btn btn-primary">
+                                                            {% trans "Assign Permissions" %}
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary" id="select-all-btn">
+                                                            {% trans "Select All Visible" %}
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-secondary" id="clear-all-btn">
+                                                            {% trans "Clear All" %}
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div class="mt-3">
+                                                        <small class="text-muted">
+                                                            <strong id="selected-count">0</strong> {% trans "permissions selected" %}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div id="message-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    <!-- Messages will be inserted here -->
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const employeeSelect = document.getElementById('employee-select');
+    const employeeInfo = document.getElementById('employee-info');
+    const currentPermissions = document.getElementById('current-permissions');
+    const permissionForm = document.getElementById('permission-form');
+    const selectedEmployee = document.getElementById('selected-employee');
+    const permissionCheckboxes = document.querySelectorAll('.permission-checkbox');
+    const selectedCount = document.getElementById('selected-count');
+    
+    // Employee selection handler
+    employeeSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (this.value) {
+            // Show employee info
+            document.getElementById('employee-name').textContent = selectedOption.dataset.name;
+            document.getElementById('employee-email').textContent = selectedOption.dataset.email;
+            document.getElementById('employee-badge').textContent = selectedOption.dataset.badge;
+            employeeInfo.style.display = 'block';
+            
+            // Set hidden field
+            selectedEmployee.value = this.value;
+            
+            // Load current permissions
+            loadCurrentPermissions(this.value);
+            
+            // Show form
+            permissionForm.style.display = 'block';
+        } else {
+            employeeInfo.style.display = 'none';
+            currentPermissions.style.display = 'none';
+            permissionForm.style.display = 'none';
+        }
+    });
+    
+    // Permission checkbox change handler
+    permissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    // Select all button
+    document.getElementById('select-all-btn').addEventListener('click', function() {
+        const visibleCheckboxes = Array.from(permissionCheckboxes).filter(cb => 
+            cb.closest('.collapse').classList.contains('show') || 
+            !cb.closest('.collapse')
+        );
+        visibleCheckboxes.forEach(cb => cb.checked = true);
+        updateSelectedCount();
+    });
+    
+    // Clear all button
+    document.getElementById('clear-all-btn').addEventListener('click', function() {
+        permissionCheckboxes.forEach(cb => cb.checked = false);
+        updateSelectedCount();
+    });
+    
+    // Form submission
+    document.getElementById('permission-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        assignPermissions();
+    });
+    
+    function updateSelectedCount() {
+        const checkedCount = Array.from(permissionCheckboxes).filter(cb => cb.checked).length;
+        selectedCount.textContent = checkedCount;
+    }
+    
+    function loadCurrentPermissions(employeeId) {
+        fetch(`/employee-permissions/${employeeId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const permissionsList = document.getElementById('permissions-list');
+                
+                if (data.permissions && data.permissions.length > 0) {
+                    let html = '<h6>Direct Permissions:</h6><ul class="list-unstyled">';
+                    data.permissions.forEach(perm => {
+                        html += `<li><span class="badge bg-primary me-2">${perm.codename}</span>${perm.name}</li>`;
+                    });
+                    html += '</ul>';
+                    
+                    if (data.group_permissions && data.group_permissions.length > 0) {
+                        html += '<h6>Group Permissions:</h6><ul class="list-unstyled">';
+                        data.group_permissions.forEach(perm => {
+                            html += `<li><span class="badge bg-secondary me-2">${perm.codename}</span>${perm.name} <small class="text-muted">(via ${perm.groups})</small></li>`;
+                        });
+                        html += '</ul>';
+                    }
+                    
+                    permissionsList.innerHTML = html;
+                } else {
+                    permissionsList.innerHTML = '<p class="text-muted">No permissions assigned.</p>';
+                }
+                
+                currentPermissions.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading permissions:', error);
+                showMessage('Error loading current permissions', 'danger');
+            });
+    }
+    
+    function assignPermissions() {
+        const formData = new FormData();
+        const checkedPermissions = Array.from(permissionCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        if (checkedPermissions.length === 0) {
+            showMessage('Please select at least one permission', 'warning');
+            return;
+        }
+        
+        formData.append('employee_id', selectedEmployee.value);
+        formData.append('permissions', JSON.stringify(checkedPermissions));
+        formData.append('mode', document.querySelector('input[name="assignment_mode"]:checked').value);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch('/assign-employee-permissions/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(data.message, 'success');
+                loadCurrentPermissions(selectedEmployee.value);
+                // Clear selections
+                permissionCheckboxes.forEach(cb => cb.checked = false);
+                updateSelectedCount();
+            } else {
+                showMessage(data.message || 'Error assigning permissions', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error assigning permissions', 'danger');
+        });
+    }
+    
+    function showMessage(message, type) {
+        const messageContainer = document.getElementById('message-container');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        messageContainer.appendChild(alertDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Initialize count
+    updateSelectedCount();
+});
+</script>
+{% endblock %}

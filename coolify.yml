@@ -1,0 +1,23 @@
+# Coolify Configuration
+# This file helps Coolify understand your application
+
+# Build Configuration
+build:
+  dockerfile: Dockerfile
+  context: .
+
+# Environment
+environment:
+  - DEBUG=False
+  - ALLOWED_HOSTS=${FQDN}
+  - CSRF_TRUSTED_ORIGINS=https://${FQDN}
+
+# Health Check
+healthcheck:
+  path: /
+  port: 8000
+
+# Volumes for persistent data
+volumes:
+  - ./media:/app/media
+  - ./staticfiles:/app/staticfiles

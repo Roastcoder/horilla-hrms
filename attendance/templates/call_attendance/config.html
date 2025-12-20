@@ -1,0 +1,150 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="oh-wrapper">
+    <div class="oh-dashboard__left col-12 col-sm-12 col-md-12 col-lg-12 pb-5">
+        <div class="oh-dashboard row">
+            <div class="col-12">
+                <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                    <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                        <span class="oh-card-dashboard__title">{% trans "Call Attendance Configuration" %}</span>
+                        <p class="oh-text-muted">{% trans "Configure thresholds for automatic attendance calculation" %}</p>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <form method="post" class="oh-form">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">{{ form.full_day_minutes.label }}</label>
+                                        {{ form.full_day_minutes }}
+                                        <small class="oh-form__help-text">{% trans "Minutes required for full day attendance" %}</small>
+                                        {% if form.full_day_minutes.errors %}
+                                            <div class="oh-form__error">{{ form.full_day_minutes.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">{{ form.half_day_minutes.label }}</label>
+                                        {{ form.half_day_minutes }}
+                                        <small class="oh-form__help-text">{% trans "Minutes required for half day attendance" %}</small>
+                                        {% if form.half_day_minutes.errors %}
+                                            <div class="oh-form__error">{{ form.half_day_minutes.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="oh-form__group">
+                                        <label class="oh-form__label">{{ form.absent_threshold_minutes.label }}</label>
+                                        {{ form.absent_threshold_minutes }}
+                                        <small class="oh-form__help-text">{% trans "Minutes below which employee is marked absent" %}</small>
+                                        {% if form.absent_threshold_minutes.errors %}
+                                            <div class="oh-form__error">{{ form.absent_threshold_minutes.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="oh-form__group">
+                                        <div class="oh-form__check">
+                                            {{ form.is_active }}
+                                            <label class="oh-form__check-label" for="{{ form.is_active.id_for_label }}">
+                                                {{ form.is_active.label }}
+                                            </label>
+                                        </div>
+                                        <small class="oh-form__help-text">{% trans "Enable this configuration" %}</small>
+                                        {% if form.is_active.errors %}
+                                            <div class="oh-form__error">{{ form.is_active.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if form.non_field_errors %}
+                                <div class="oh-alert oh-alert--danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="oh-form__actions">
+                                <button type="submit" class="oh-btn oh-btn--primary">
+                                    {% trans "Save Configuration" %}
+                                </button>
+                                <a href="{% url 'attendance-view' %}" class="oh-btn oh-btn--secondary">
+                                    {% trans "Cancel" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {% if config %}
+            <div class="col-12 mt-4">
+                <div class="oh-card-dashboard oh-card-dashboard--no-scale oh-card-dashboard--transparent">
+                    <div class="oh-card-dashboard__header oh-card-dashboard__header--divider">
+                        <span class="oh-card-dashboard__title">{% trans "Current Configuration" %}</span>
+                    </div>
+                    <div class="oh-card-dashboard__body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--success oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ config.full_day_minutes }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Full Day Minutes" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--warning oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ config.half_day_minutes }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Half Day Minutes" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--danger oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            <span class="oh-card-dashboard__count">{{ config.absent_threshold_minutes }}</span>
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Absent Threshold" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="oh-card-dashboard oh-card-dashboard--{% if config.is_active %}success{% else %}neutral{% endif %} oh-card-dashboard--sm">
+                                    <div class="oh-card-dashboard__body">
+                                        <div class="oh-card-dashboard__counts">
+                                            {% if config.is_active %}
+                                                <ion-icon name="checkmark-circle" style="font-size: 2rem; color: #28a745;"></ion-icon>
+                                            {% else %}
+                                                <ion-icon name="close-circle" style="font-size: 2rem; color: #dc3545;"></ion-icon>
+                                            {% endif %}
+                                        </div>
+                                        <span class="oh-card-dashboard__title">{% trans "Status" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

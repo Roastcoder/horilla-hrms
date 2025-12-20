@@ -1,0 +1,444 @@
+{% extends 'index.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="oh-wrapper">
+    <!-- Header Section -->
+    <div class="oh-main__topbar">
+        <div class="oh-main__topbar-info">
+            <h1 class="oh-main__topbar-title">{% trans "Incentive Slabs" %}</h1>
+        </div>
+        <div class="oh-main__topbar-actions">
+            <button onclick="toggleForm()" class="oh-btn oh-btn--primary" id="addBtn">
+                <ion-icon name="add-outline"></ion-icon>
+                {% trans "Add Slab" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="oh-card" id="slabFormCard" style="display: none;">
+        <div class="oh-card__header">
+            <div class="oh-card__header-info">
+                <h3 class="oh-card__title" id="formTitle">
+                    {% trans "Create New Incentive Slab" %}
+                </h3>
+            </div>
+        </div>
+        
+        <div class="oh-card__body">
+            <form method="post" id="slabForm">
+                {% csrf_token %}
+                <input type="hidden" id="slabId" name="slab_id" value="">
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="oh-input-group">
+                            <label class="oh-input__label" for="min_amount">
+                                {% trans "Min Amount (Lacs)" %} <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                name="min_amount" 
+                                id="min_amount"
+                                class="oh-input w-100"
+                                placeholder="{% trans 'Enter minimum amount' %}"
+                                required
+                            />
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="oh-input-group">
+                            <label class="oh-input__label" for="max_amount">
+                                {% trans "Max Amount (Lacs)" %}
+                            </label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                name="max_amount" 
+                                id="max_amount"
+                                class="oh-input w-100"
+                                placeholder="{% trans 'Leave empty for no limit' %}"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="oh-input-group">
+                            <label class="oh-input__label" for="incentive_per_lac">
+                                {% trans "Incentive per Lac" %} <span class="text-danger">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                name="incentive_per_lac" 
+                                id="incentive_per_lac"
+                                class="oh-input w-100"
+                                placeholder="{% trans 'Enter incentive amount' %}"
+                                required
+                            />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="oh-card__footer mt-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="oh-btn oh-btn--primary" id="submitBtn">
+                            <ion-icon name="save-outline"></ion-icon>
+                            {% trans "Save" %}
+                        </button>
+                        <button type="button" onclick="cancelForm()" class="oh-btn oh-btn--secondary">
+                            <ion-icon name="close-outline"></ion-icon>
+                            {% trans "Cancel" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="oh-card">
+        <div class="oh-card__header">
+            <div class="oh-card__header-info">
+                <h3 class="oh-card__title">{% trans "Incentive Slabs List" %}</h3>
+                <p class="oh-card__subtitle">{% trans "Manage incentive slabs and their ranges" %}</p>
+            </div>
+        </div>
+        
+        <div class="oh-card__body">
+            <div class="oh-sticky-table">
+                <table class="oh-sticky-table__table">
+                    <thead class="oh-sticky-table__thead">
+                        <tr class="oh-sticky-table__tr">
+                            <th class="oh-sticky-table__th">{% trans "Slab Range" %}</th>
+                            <th class="oh-sticky-table__th">{% trans "Incentive per Lac" %}</th>
+                            <th class="oh-sticky-table__th">{% trans "Status" %}</th>
+                            <th class="oh-sticky-table__th text-center">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="oh-sticky-table__tbody">
+                        {% for slab in slabs %}
+                        <tr class="oh-sticky-table__tr">
+                            <td class="oh-sticky-table__td">
+                                <div class="d-flex align-items-center">
+                                    <div class="oh-avatar oh-avatar--sm me-2">
+                                        <ion-icon name="bar-chart-outline"></ion-icon>
+                                    </div>
+                                    <span class="fw-medium">
+                                        ₹{{ slab.min_amount|floatformat:0 }}L - 
+                                        {% if slab.max_amount %}₹{{ slab.max_amount|floatformat:0 }}L{% else %}Above{% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="oh-sticky-table__td">
+                                <span class="oh-badge oh-badge--success">₹{{ slab.incentive_per_lac }}</span>
+                            </td>
+                            <td class="oh-sticky-table__td">
+                                <span class="oh-badge oh-badge--success">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                    {% trans "Active" %}
+                                </span>
+                            </td>
+                            <td class="oh-sticky-table__td text-center">
+                                <div class="oh-dropdown">
+                                    <button class="oh-btn oh-btn--secondary oh-btn--sm oh-dropdown__toggle">
+                                        <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+                                    </button>
+                                    <div class="oh-dropdown__menu">
+                                        <button onclick="editSlab({{ slab.id }}, '{{ slab.min_amount }}', '{{ slab.max_amount }}', '{{ slab.incentive_per_lac }}')" class="oh-dropdown__item">
+                                            <ion-icon name="create-outline"></ion-icon>
+                                            {% trans "Edit" %}
+                                        </button>
+                                        <button onclick="deleteSlab({{ slab.id }})" class="oh-dropdown__item oh-dropdown__item--danger">
+                                            <ion-icon name="trash-outline"></ion-icon>
+                                            {% trans "Delete" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="oh-sticky-table__tr">
+                            <td colspan="4" class="oh-sticky-table__td text-center py-5">
+                                <div class="oh-empty-state">
+                                    <ion-icon name="bar-chart-outline" class="oh-empty-state__icon"></ion-icon>
+                                    <h4 class="oh-empty-state__title">{% trans "No incentive slabs found" %}</h4>
+                                    <p class="oh-empty-state__subtitle">{% trans "Create your first incentive slab to get started" %}</p>
+                                    <button onclick="toggleForm()" class="oh-btn oh-btn--primary oh-btn--sm">
+                                        <ion-icon name="add-outline"></ion-icon>
+                                        {% trans "Add Slab" %}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.oh-empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.oh-empty-state__icon {
+    font-size: 3rem;
+    color: var(--oh-color-muted);
+    margin-bottom: 1rem;
+}
+
+.oh-empty-state__title {
+    color: var(--oh-color-text);
+    margin-bottom: 0.5rem;
+}
+
+.oh-empty-state__subtitle {
+    color: var(--oh-color-muted);
+    margin-bottom: 1.5rem;
+}
+
+.oh-card {
+    margin-bottom: 1.5rem;
+}
+
+.oh-card__subtitle {
+    color: var(--oh-color-muted);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.oh-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--oh-color-primary-light);
+    color: var(--oh-color-primary);
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+}
+
+.oh-avatar--sm {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+}
+
+#slabFormCard {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+let isEditing = false;
+
+function toggleForm() {
+    const formCard = document.getElementById('slabFormCard');
+    const addBtn = document.getElementById('addBtn');
+    
+    if (formCard.style.display === 'none' || formCard.style.display === '') {
+        formCard.style.display = 'block';
+        addBtn.innerHTML = '<ion-icon name="close-outline"></ion-icon> {% trans "Cancel" %}';
+        addBtn.classList.remove('oh-btn--primary');
+        addBtn.classList.add('oh-btn--secondary');
+        resetForm();
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        cancelForm();
+    }
+}
+
+function cancelForm() {
+    const formCard = document.getElementById('slabFormCard');
+    const addBtn = document.getElementById('addBtn');
+    
+    formCard.style.display = 'none';
+    addBtn.innerHTML = '<ion-icon name="add-outline"></ion-icon> {% trans "Add Slab" %}';
+    addBtn.classList.remove('oh-btn--secondary');
+    addBtn.classList.add('oh-btn--primary');
+    resetForm();
+}
+
+function resetForm() {
+    document.getElementById('slabForm').reset();
+    document.getElementById('slabId').value = '';
+    document.getElementById('formTitle').textContent = '{% trans "Create New Incentive Slab" %}';
+    document.getElementById('submitBtn').innerHTML = '<ion-icon name="save-outline"></ion-icon> {% trans "Save" %}';
+    isEditing = false;
+}
+
+function editSlab(id, minAmount, maxAmount, incentivePerLac) {
+    const formCard = document.getElementById('slabFormCard');
+    const addBtn = document.getElementById('addBtn');
+    
+    formCard.style.display = 'block';
+    addBtn.innerHTML = '<ion-icon name="close-outline"></ion-icon> {% trans "Cancel" %}';
+    addBtn.classList.remove('oh-btn--primary');
+    addBtn.classList.add('oh-btn--secondary');
+    
+    document.getElementById('slabId').value = id;
+    document.getElementById('min_amount').value = minAmount;
+    document.getElementById('max_amount').value = maxAmount === 'None' ? '' : maxAmount;
+    document.getElementById('incentive_per_lac').value = incentivePerLac;
+    document.getElementById('formTitle').textContent = '{% trans "Update Incentive Slab" %}';
+    document.getElementById('submitBtn').innerHTML = '<ion-icon name="save-outline"></ion-icon> {% trans "Update" %}';
+    isEditing = true;
+    
+    formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('slabForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    const formData = new FormData(this);
+    
+    submitBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div> {% trans "Saving..." %}';
+    submitBtn.disabled = true;
+    
+    const url = isEditing ? 
+        `/sales/incentive-slabs/update/${document.getElementById('slabId').value}/` : 
+        '/sales/incentive-slabs/create/';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('{% trans "Incentive slab saved successfully!" %}', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(data.message || '{% trans "An error occurred" %}', 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('{% trans "An error occurred" %}', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+function deleteSlab(slabId) {
+    if (confirm('{% trans "Are you sure you want to delete this slab?" %}')) {
+        fetch(`/sales/incentive-slabs/delete/${slabId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('{% trans "Incentive slab deleted successfully!" %}', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || '{% trans "An error occurred" %}', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('{% trans "An error occurred" %}', 'error');
+        });
+    }
+}
+
+function showNotification(message, type) {
+    const existingNotifications = document.querySelectorAll('.oh-toast');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `oh-toast oh-toast--${type}`;
+    notification.innerHTML = `
+        <div class="oh-toast__content">
+            <ion-icon name="${type === 'success' ? 'checkmark-circle' : 'alert-circle'}"></ion-icon>
+            <span>${message}</span>
+        </div>
+        <button class="oh-toast__close" onclick="this.parentElement.remove()">
+            <ion-icon name="close"></ion-icon>
+        </button>
+    `;
+    
+    if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .oh-toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                padding: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                z-index: 9999;
+                min-width: 300px;
+                animation: slideInRight 0.3s ease-out;
+            }
+            .oh-toast--success { border-left: 4px solid #10b981; }
+            .oh-toast--error { border-left: 4px solid #ef4444; }
+            .oh-toast__content {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                flex: 1;
+            }
+            .oh-toast--success .oh-toast__content ion-icon { color: #10b981; }
+            .oh-toast--error .oh-toast__content ion-icon { color: #ef4444; }
+            .oh-toast__close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.25rem;
+                border-radius: 4px;
+            }
+            .oh-toast__close:hover { background: #f3f4f6; }
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
+}
+</script>
+{% csrf_token %}
+{% endblock %}

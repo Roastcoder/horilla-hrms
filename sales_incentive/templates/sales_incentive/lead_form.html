@@ -1,0 +1,80 @@
+{% load i18n %}
+<div class="oh-modal__dialog-body">
+    <form method="post" id="leadForm">
+        {% csrf_token %}
+        <div class="oh-input-group">
+            <label class="oh-input__label" for="employee_id">{% trans "Employee" %} *</label>
+            <select name="employee_id" id="employee_id" class="oh-select" required>
+                <option value="">{% trans "Select Employee" %}</option>
+                {% for employee in employees %}
+                <option value="{{ employee.id }}" {% if lead and lead.employee.id == employee.id %}selected{% endif %}>
+                    {{ employee.employee_first_name }} {{ employee.employee_last_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="oh-input-group">
+            <label class="oh-input__label" for="loan_type_id">{% trans "Loan Type" %} *</label>
+            <select name="loan_type_id" id="loan_type_id" class="oh-select" required>
+                <option value="">{% trans "Select Loan Type" %}</option>
+                {% for loan_type in loan_types %}
+                <option value="{{ loan_type.id }}" {% if lead and lead.loan_type.id == loan_type.id %}selected{% endif %}>
+                    {{ loan_type.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="oh-input-group">
+            <label class="oh-input__label" for="loan_amount">{% trans "Loan Amount (₹)" %} *</label>
+            <input 
+                type="number" 
+                step="0.01"
+                name="loan_amount" 
+                id="loan_amount"
+                class="oh-input"
+                value="{% if lead %}{{ lead.loan_amount }}{% endif %}"
+                required
+            />
+        </div>
+        
+        <div class="oh-input-group">
+            <label class="oh-input__label" for="status">{% trans "Status" %}</label>
+            <select name="status" id="status" class="oh-select">
+                <option value="NEW" {% if not lead or lead.status == 'NEW' %}selected{% endif %}>{% trans "New" %}</option>
+                <option value="DISBURSED" {% if lead and lead.status == 'DISBURSED' %}selected{% endif %}>{% trans "Disbursed" %}</option>
+            </select>
+        </div>
+        
+        <div class="oh-modal__dialog-footer">
+            <button type="submit" class="oh-btn oh-btn--primary">
+                {% if lead %}{% trans "Update Lead" %}{% else %}{% trans "Create Lead" %}{% endif %}
+            </button>
+            <button type="button" class="oh-btn oh-btn--secondary" onclick="closeModal()">
+                {% trans "Cancel" %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('leadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    fetch(this.action || window.location.href, {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/sales/leads/';
+        }
+    });
+});
+
+function closeModal() {
+    window.location.href = '/sales/leads/';
+}
+</script>
