@@ -11,6 +11,10 @@ environment:
   - DEBUG=False
   - ALLOWED_HOSTS=${FQDN}
   - CSRF_TRUSTED_ORIGINS=https://${FQDN}
+  - SECRET_KEY=django-insecure-j8op9)1q8$1&@^s&p*_0%d#pr@w9qj@lo=3#@d=a(^@9@zd@%j
+  - DATABASE_URL=postgres://Hrms:Finonesthr%40admi%40tiger@k8occk8ss4g0wgssokw8ww8g:5432/Finohr
+  - DB_INIT_PASSWORD=d3f6a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d
+  - TIME_ZONE=Asia/Kolkata
 
 # Health Check
 healthcheck:
