@@ -13,34 +13,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Actiontype',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=50)),
-                ('action_type', models.CharField(choices=[('warning', 'Warning'), ('suspension', 'Suspension'), ('dismissal', 'Dismissal')], max_length=30)),
-                ('block_option', models.BooleanField(default=False, help_text='If is enabled, employees log in will be blocked based on period of suspension or dismissal.', verbose_name='Enable login block :')),
-            ],
-            options={
-                'verbose_name': 'Action Type',
-                'verbose_name_plural': 'Action Types',
-            },
+        migrations.RunSQL(
+            "CREATE TABLE IF NOT EXISTS employee_actiontype (id SERIAL PRIMARY KEY, title VARCHAR(50), action_type VARCHAR(30), block_option BOOLEAN DEFAULT FALSE, created_at TIMESTAMP, created_by_id INTEGER, updated_at TIMESTAMP, updated_by_id INTEGER);",
+            reverse_sql="DROP TABLE IF EXISTS employee_actiontype;"
         ),
-        migrations.CreateModel(
-            name='DisciplinaryAction',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.TextField(max_length=255)),
-                ('unit_in', models.CharField(choices=[('days', 'Days'), ('hours', 'Hours')], default='days', max_length=10)),
-                ('days', models.IntegerField(default=1, null=True)),
-                ('hours', models.CharField(default='00:00', max_length=6, null=True, validators=[validate_time_format])),
-                ('start_date', models.DateField(null=True)),
-                ('attachment', models.FileField(blank=True, null=True, upload_to=upload_path)),
-                ('action', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='employee.actiontype')),
-                ('employee_id', models.ManyToManyField(to='employee.employee', verbose_name='Employees')),
-            ],
-            options={
-                'ordering': ['-id'],
-            },
+        migrations.RunSQL(
+            "CREATE TABLE IF NOT EXISTS employee_disciplinaryaction (id SERIAL PRIMARY KEY, description TEXT, unit_in VARCHAR(10) DEFAULT 'days', days INTEGER DEFAULT 1, hours VARCHAR(6) DEFAULT '00:00', start_date DATE, attachment VARCHAR(100), action_id INTEGER, created_at TIMESTAMP, created_by_id INTEGER, updated_at TIMESTAMP, updated_by_id INTEGER);",
+            reverse_sql="DROP TABLE IF EXISTS employee_disciplinaryaction;"
+        ),
+        migrations.RunSQL(
+            "CREATE TABLE IF NOT EXISTS employee_disciplinaryaction_employee_id (id SERIAL PRIMARY KEY, disciplinaryaction_id INTEGER, employee_id INTEGER);",
+            reverse_sql="DROP TABLE IF EXISTS employee_disciplinaryaction_employee_id;"
         ),
     ]
